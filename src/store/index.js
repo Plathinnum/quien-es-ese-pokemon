@@ -4,7 +4,9 @@ import axios from 'axios';
 const store = createStore({
     state: {
         pokemons: [],  // Estado para almacenar los Pokémon obtenidos
-        randomPokemon: null // Estado para almacenar un Pokémon al azar
+        randomPokemon: null, // Estado para almacenar un Pokémon al azar
+        quantityRandomPokemon: 3,
+        randomPokemons: [],
     },
     mutations: {
         setPokemons(state, pokemons) {
@@ -31,18 +33,24 @@ const store = createStore({
         },
         async fetchRandomPokemon({ commit }) {
             try {
-                const id = Math.floor(Math.random() * 898) + 1;
+                const id = Math.floor(Math.random() * 1024) + 1;
+                // const id = 1000;
                 const { data } = await axios.get(`https://pokeapi.co/api/v2/pokemon/${id}`);
                 const pokemon = {
                     name: data.name,
-                    imageUrl: data.sprites.other['official-artwork'].front_default
+                    imageUrl: data.sprites.other['home'].front_default
                 };
                 console.log("Pokémon random", pokemon);
                 commit('setRandomPokemon', pokemon);
             } catch (error) {
                 console.error(error);
             }
-        }
+        },
+        // async fetchRandomPokemonByQuantity({ commit }) {
+        //     try {
+        //         const p = {}
+        //     }
+        // },
     },
     getters: {
         pokemons: state => state.pokemons,

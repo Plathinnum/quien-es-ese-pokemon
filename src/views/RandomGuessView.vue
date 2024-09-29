@@ -32,7 +32,7 @@ export default {
     },
     methods: {
         async fetchNewPokemon() {
-            await this.$store.dispatch('fetchRandomPokemon');
+            await this.$store.dispatch('fetchRandomPokemon', 3);
         },
         handleNameChecked(isCorrect) {
             console.log('Correcto:', isCorrect);
