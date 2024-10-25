@@ -1,7 +1,9 @@
 <template>
-    <div v-if="pokemon" class="d-flex flex-column align-items-center card-container">
+    <div v-if="pokemon" class="d-flex flex-column align-items-center card-container transparent-box">
         <!-- Bindings de ubicación de la imagen, del nombre del pokémon en alt y del estilo blur -->
+        <div v-if="isValid && pokemon.isShiny" class="shiny-background"></div>
         <img :src="pokemon.imageUrl" :alt="pokemon.name" :style="imageStyle" class="pokemon-image" />
+
         <!-- Si es falso el isValid, muestra el input y el botón -->
         <div class="input-button-container">
             <div v-if="!isValid">
@@ -16,6 +18,7 @@
             <!-- Si es true isValid, quita lo demás y muestra solo un h3 con el nombre ingresado -->
             <div v-else>
                 <h3 class="pokemon-label">{{ userInput }}</h3>
+                <h6>{{ category }}</h6>
             </div>
         </div>
     </div>
@@ -25,6 +28,7 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
 export default {
     name: 'PokemonCardComponent',
     // Utiliza el prop del objeto pokemon completo
@@ -36,7 +40,11 @@ export default {
             // Variable inicializada vacía, es el input que pone el usuario
             userInput: '',
             // Variable inicializada en falso, para vecificar si está correcto el nombre
-            isValid: false
+            isValid: false,
+            // Variable vacía, es el output final que se mostrará con el nombre correcto
+            displayName: '',
+            // Variable que guarda en un array
+
         };
     },
     watch: {
@@ -53,6 +61,10 @@ export default {
         })
     },
     computed: {
+        // Accede a la categoría desde el store
+        ...mapState({
+            category: state => state.randomPokemonCategory
+        }),
         // Función que procesa la variable de estado isValid
         imageStyle() {
             return {
@@ -69,8 +81,25 @@ export default {
                 'nidoranf': "nidoran",
                 'nidoranm': "nidoran",
                 'farfetchd': "farfetch'd",
+                'mr-mime': "mr. mime",
+                'mime-jr': "mime jr.",
+                'jangmo-o': "jangmo-o",
+                'hakamo-o': "hakamo-o",
+                'kommo-o': "kommo-o",
                 'type-null': ["type: null", "código cero", "codigo cero"],
+                'nihilego': ["nihilego", "ue-01 parásito", "ue-01 parasito", "ub-01 symbiont"],
+                'buzzwole': ["buzzwole", "ue-02 expansión", "ue-02 expansion", "ub-02 absorption"],
+                'pheromosa': ["pheromosa", "ue-02 elegancia", "ub-02 beauty"],
+                'xurkitree': ["xurkitree", "ue-03 resplandor", "ub-03 lighting"],
+                'celesteela': ["celesteela", "ue-04 cohete", "ub-04 blaster"],
+                'kartana': ["kartana", "ue-04 tajo", "ub-04 blade"],
+                'guzzlord': ["guzzlord", "ue-05 voracidad", "ub-05 glutton"],
+                'poipole': ["poipole", "ue viscoso", "ub adhesive"],
+                'naganadel': ["naganadel", "ue aguijón", "ue aguijon", "ub stinger"],
+                'stakataka': ["stakataka", "ue bloques", "ub assembly"],
+                'blacephalon': ["blacephalon", "ue explosivo", "ub burst"],
                 'sirfetchd': "sirfetch'd",
+                'mr-rime': "mr. rime",
                 'great-tusk': ["great tusk", "colmilargo"],
                 'scream-tail': ["scream tail", "colagrito"],
                 'brute-bonnet': ["brute bonnet", "furioseta"],
@@ -159,10 +188,37 @@ export default {
 
 .input-button-container {
     min-height: 85px;
-    /* Ajusta según el tamaño que desees */
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+}
+
+.transparent-box {
+    /* border: 2px solid rgba(255, 255, 255, 0.5); */
+    /* Bordes semi-transparentes */
+    background-color: rgba(255, 255, 255, 0.1);
+    /* Fondo con transparencia */
+    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+    /* Efecto de sombra */
+    backdrop-filter: blur(5px);
+    /* Efecto difuminado de fondo */
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.shiny-background {
+    background-image: url('/public/shiny.png');
+    position: absolute;
+    /* top: -10%;
+    left: -10%; */
+    transform: translate(-6%, -15%);
+    background-size: contain;
+    background-repeat: no-repeat;
+    width: 120%;
+    height: 120%;
+    background-size: cover;
+    z-index: -1;
+    /* opacity: 0.5; */
 }
 </style>

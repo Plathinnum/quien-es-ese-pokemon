@@ -11,7 +11,7 @@
                     // Clave y nomber obtenido de la api
                     name: pokemon.name,
                     // Ubicación de las imágenes de los ponkémon, se interpola con la id de cada pokémon
-                    imageUrl: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemon.id}.png`
+                    imageUrl: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/${pokemon.id}.png`
                     // Se escucha el evento chequeador, ejecutará la función que emite si es válido
                 }" @nameChecked="handleNameChecked" />
             </div>

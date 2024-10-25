@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="background">
     <NavbarComponent />
     <div class="container">
       <router-view />
@@ -38,5 +38,9 @@ img {
 h1,
 h2 {
   margin: 10px 0;
+}
+
+.background {
+  background-color: #679fff;
 }
 </style>
