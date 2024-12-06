@@ -1,5 +1,6 @@
 <template>
-    <div class="container">
+    <div class="container text-center">
+        <h1>Lista</h1>
         <h2>Pokémon descubiertos:
             <span class="text-warning fw-bold">{{ foundNumber }}</span>
         </h2>

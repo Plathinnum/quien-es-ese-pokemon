@@ -1,7 +1,7 @@
 <template>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top">
+    <nav class="navbar navbar-expand-lg navbar-light bg-complement sticky-top">
         <div class="container">
-            <router-link to="/" class="navbar-brand">Base secreta</router-link>
+            <router-link to="/#" class="navbar-brand f-complement fs-3">Base secreta</router-link>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -10,19 +10,21 @@
                 <ul class="navbar-nav">
                     <li class="nav-item">
                         <router-link to="/random-pokemon" class="nav-link"
-                            exact-active-class="active">Clásico</router-link>
+                            exact-active-class="active">Random</router-link>
                     </li>
                     <li class="nav-item">
-                        <router-link to="/list-pokemon" class="nav-link">Lista</router-link>
+                        <router-link to="/list-pokemon" class="nav-link" exact-active-class="active">Lista</router-link>
                     </li>
-                    <!-- <li class="nav-item">
-                        <router-link to="/#" class="nav-link">Generador</router-link>
-                    </li> -->
+                    <li class="nav-item">
+                        <router-link to="/generator" class="nav-link"
+                            exact-active-class="active">Generador</router-link>
+                    </li>
                 </ul>
             </div>
         </div>
     </nav>
 </template>
+
 
 <script>
 export default {
@@ -41,6 +43,14 @@ export default {
 
 .nav-link.active {
     font-weight: bold;
-    color: #007bff;
+    color: black;
+}
+
+.bg-complement {
+    background-color: #3E6FCC;
+}
+
+.f-complement {
+    color: #89B7FF;
 }
 </style>

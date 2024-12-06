@@ -42,5 +42,6 @@ h2 {
 
 .background {
   background-color: #679fff;
+  min-height: 100vh;
 }
 </style>

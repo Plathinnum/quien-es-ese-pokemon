@@ -1,13 +1,14 @@
 import { createStore } from 'vuex';
 import axios from 'axios';
+import { generationRanges, generateUniqueId, isShiny, getPokemonGenus } from '@/utils/utils';
 
 const store = createStore({
     state: {
         pokemons: [],  // Estado para almacenar los Pokémon obtenidos
         randomPokemon: null, // Estado para almacenar un Pokémon al azar
         randomPokemonCategory: '',
-        // quantityRandomPokemon: 3,
         usedIds: [],
+        generatedPokemons: [],
     },
     mutations: {
         setPokemons(state, pokemons) {
@@ -28,6 +29,9 @@ const store = createStore({
             state.randomPokemonCategory = '';
             state.usedIds = [];
         },
+        generatePokemon(state, generatedPokemons) {
+            state.generatedPokemons = generatedPokemons;
+        },
     },
     actions: {
         async fetchPokemons({ commit }) {
@@ -45,61 +49,113 @@ const store = createStore({
             }
         },
         async fetchRandomPokemon({ commit, state }) {
-            // Función que calcuala si es shiny o no
-            function shiny(odds) {
-                const randomValue = Math.random();
-                return randomValue < odds; // Si randomValue es menor, será shiny
-            }
+            const id = generateUniqueId(state.usedIds, 1, 1024); // Genera un ID único
+            commit('addUsedIds', id); // Guarda la ID generada
 
-            let id;
-            do {
-                id = Math.floor(Math.random() * 1024) + 1;
-                // id = 311;
-            } while (state.usedIds.includes(id)); // Verifica en el state
-            // Se guarda la id generada en el array
-            commit('addUsedIds', id);
             try {
+                // Solicita datos del Pokémon
                 const { data } = await axios.get(`https://pokeapi.co/api/v2/pokemon/${id}`);
-                const isShiny = shiny(0.024);
-                // La imagen se escoge según la probabilidad y si esta fue true para un shiny
-                const imageUrl = isShiny ? data.sprites.other['home'].front_shiny : data.sprites.other['home'].front_default
-                // Crea el objeto del pokémon
+                const shinyStatus = isShiny(); // Determina si el Pokémon es shiny
+                const imageUrl = shinyStatus
+                    ? data.sprites.other['home'].front_shiny
+                    : data.sprites.other['home'].front_default;
+
                 const pokemon = {
                     name: data.name,
                     imageUrl,
-                    isShiny,
+                    isShiny: shinyStatus,
                 };
                 console.log("Pokémon random", pokemon);
                 commit('setRandomPokemon', pokemon);
 
+                // Solicita datos de la especie
                 const { data: speciesData } = await axios.get(`https://pokeapi.co/api/v2/pokemon-species/${id}`);
-                //Se crea una variable con la categoría en español
-                let generaEntry = speciesData.genera.find(genus => genus.language.name === "es");
-                //Si no pudo encontrarla en español, toma la inglesa
-                if (!generaEntry) {
-                    generaEntry = speciesData.genera.find(genus => genus.language.name === "en");
-                }
-                // Obtiene el genus (categoría)
-                const genera = generaEntry ? generaEntry.genus : 'Categoría no disponible';
+                const genera = getPokemonGenus(speciesData.genera); // Obtiene la categoría
                 console.log("Categoría", genera);
-                commit('setRandomPokemonCategory', genera); // Actualiza la categoría
+                commit('setRandomPokemonCategory', genera);
+
             } catch (error) {
-                console.error(error);
+                console.error("Error al obtener el Pokémon:", error);
             }
         },
         resetGame({ commit }) {
-            commit('resetGameState'); // Asegúrate de tener una mutación que reinicie el estado
+            commit('resetGameState'); // Reinicia el estado en las mutaciones
+        },
+        async generatePokemon({ commit }, { chosenGeneration, chosenQuantity, chosenEggGroup, chosenShape }) {
+            if (!generationRanges[chosenGeneration]) {
+                console.error(`Generación ${chosenGeneration} no encontrada en generationRanges.`);
+                return;
+            }
+
+            const [min, max] = generationRanges[chosenGeneration];
+            const tempUsedIds = new Set();
+            const generatedPokemons = [];
+
+            try {
+                // Obtener datos de especies en el rango
+                const speciesPromises = Array.from({ length: max - min + 1 }, (_, i) => {
+                    const id = min + i;
+                    return axios.get(`https://pokeapi.co/api/v2/pokemon-species/${id}`);
+                });
+
+                // Resolución de todas las promesas
+                const speciesResponses = await Promise.all(speciesPromises);
+
+                // Filtrar especies según el grupo huevo (si aplica)
+                const filteredSpecies = speciesResponses.filter(({ data }) => {
+                    if (chosenShape !== 'any') { // Filtrar por forma
+                        if (!data.shape || data.shape.name !== chosenShape) return false;
+                    }
+                    // Mantener los otros filtros como el de grupo huevo
+                    if (chosenEggGroup !== 'any') {
+                        const eggGroups = data.egg_groups.map(group => group.name);
+                        if (!eggGroups.includes(chosenEggGroup)) return false;
+                    }
+
+                    return true; // Incluir si pasa todos los filtros
+                });
+
+
+                // Generar los Pokémon a partir de las especies filtradas
+                while (generatedPokemons.length < chosenQuantity && filteredSpecies.length > 0) {
+                    // Seleccionar un ID aleatorio de las especies filtradas
+                    const randomIndex = Math.floor(Math.random() * filteredSpecies.length);
+                    const speciesData = filteredSpecies.splice(randomIndex, 1)[0].data;
+
+                    // Verificar ID único
+                    const id = speciesData.id;
+                    if (tempUsedIds.has(id)) continue;
+
+                    // Obtener datos específicos de `pokemon/{id}`
+                    const { data: pokemonData } = await axios.get(`https://pokeapi.co/api/v2/pokemon/${id}`);
+                    const shinyStatus = isShiny();
+                    const imageUrl = shinyStatus
+                        ? pokemonData.sprites.other['home'].front_shiny
+                        : pokemonData.sprites.other['home'].front_default;
+
+                    // Crear el objeto del Pokémon
+                    const pokemon = {
+                        name: pokemonData.name,
+                        imageUrl,
+                        isShiny: shinyStatus,
+                        eggGroups: speciesData.egg_groups.map(group => group.name),
+                    };
+
+                    tempUsedIds.add(id);
+                    generatedPokemons.push(pokemon);
+                    console.log("Hola");
+                }
+            } catch (error) {
+                console.error("Error al generar Pokémon:", error);
+            }
+            commit('generatePokemon', generatedPokemons);
         }
-        // async fetchRandomPokemonByQuantity({ commit }) {
-        //     try {
-        //         const p = {}
-        //     }
-        // },
     },
     getters: {
         pokemons: state => state.pokemons,
         randomPokemon: state => state.randomPokemon,
         usedIds: state => state.usedIds,
+        generatedPokemons: state => state.generatedPokemons,
     }
 });
 
